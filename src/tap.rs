@@ -90,7 +90,7 @@ where
 	///
 	/// # Examples
 	///
-	/// Here we use `.tap_mut()` to sort an array without requring multiple
+	/// Here we use `.tap_mut()` to sort an array without requiring multiple
 	/// bindings.
 	///
 	/// ```rust
@@ -120,8 +120,8 @@ where
 
 	/// Immutable access to the `Borrow<B>` of a value.
 	///
-	/// This function is identcal to [`Tap::tap`], except that the effect
-	/// function recevies an `&B` produced by `Borrow::<B>::borrow`, rather than
+	/// This function is identical to [`Tap::tap`], except that the effect
+	/// function receives an `&B` produced by `Borrow::<B>::borrow`, rather than
 	/// an `&Self`.
 	///
 	/// [`Tap::tap`]: trait.Tap.html#method.tap
@@ -350,7 +350,7 @@ where
 	/// The interior type that the container may or may not carry.
 	type Val: ?Sized;
 
-	/// Immutabily accesses an interior value only when it is present.
+	/// Immutably accesses an interior value only when it is present.
 	///
 	/// This function is identical to [`Tap::tap`], except that it is required
 	/// to check the implementing container for value presence before running.
@@ -360,7 +360,7 @@ where
 	/// [`Tap::tap`]: trait.Tap.html#method.tap
 	fn tap_some(self, func: impl FnOnce(&Self::Val)) -> Self;
 
-	/// Mutably accesses an interor value only when it is present.
+	/// Mutably accesses an interior value only when it is present.
 	///
 	/// This function is identical to [`Tap::tap_mut`], except that it is
 	/// required to check the implementing container for value presence before
