@@ -220,25 +220,131 @@ where
 		self
 	}
 
-	//  debug-build-only copies of the above methods
+	//  `*_if` and `*_debug` (debug build only) copies of the above methods.
 
-	/// Calls `.tap()` only in debug builds, and is erased in release builds.
+	/// Calls `.tap()` only when `predicate` is `true`.
 	#[inline(always)]
-	fn tap_dbg(self, func: impl FnOnce(&Self)) -> Self {
-		if cfg!(debug_assertions) {
+	fn tap_if(self, predicate: bool, func: impl FnOnce(&Self)) -> Self {
+		if predicate {
 			func(&self);
 		}
 		self
 	}
 
-	/// Calls `.tap_mut()` only in debug builds, and is erased in release
-	/// builds.
+	/// Calls `.tap_mut()` only when `predicate` is `true`.
 	#[inline(always)]
-	fn tap_mut_dbg(mut self, func: impl FnOnce(&mut Self)) -> Self {
-		if cfg!(debug_assertions) {
+	fn tap_mut_if(
+		mut self,
+		predicate: bool,
+		func: impl FnOnce(&mut Self),
+	) -> Self {
+		if predicate {
 			func(&mut self);
 		}
 		self
+	}
+
+	/// Calls `.tap_borrow()` only when `predicate` is `true`.
+	#[inline(always)]
+	fn tap_borrow_if<B>(self, predicate: bool, func: impl FnOnce(&B)) -> Self
+	where
+		Self: Borrow<B>,
+		B: ?Sized,
+	{
+		if predicate {
+			func(Borrow::<B>::borrow(&self));
+		}
+		self
+	}
+
+	/// Calls `.tap_borrow_mut()` only when `predicate` is `true`.
+	#[inline(always)]
+	fn tap_borrow_mut_if<B>(
+		mut self,
+		predicate: bool,
+		func: impl FnOnce(&mut B),
+	) -> Self
+	where
+		Self: BorrowMut<B>,
+		B: ?Sized,
+	{
+		if predicate {
+			func(BorrowMut::<B>::borrow_mut(&mut self));
+		}
+		self
+	}
+
+	/// Calls `.tap_ref()` only when `predicate` is `true`.
+	#[inline(always)]
+	fn tap_ref_if<R>(self, predicate: bool, func: impl FnOnce(&R)) -> Self
+	where
+		Self: AsRef<R>,
+		R: ?Sized,
+	{
+		if predicate {
+			func(AsRef::<R>::as_ref(&self));
+		}
+		self
+	}
+
+	/// Calls `.tap_ref_mut()` only when `predicate` is `true`.
+	#[inline(always)]
+	fn tap_ref_mut_if<R>(
+		mut self,
+		predicate: bool,
+		func: impl FnOnce(&mut R),
+	) -> Self
+	where
+		Self: AsMut<R>,
+		R: ?Sized,
+	{
+		if predicate {
+			func(AsMut::<R>::as_mut(&mut self));
+		}
+		self
+	}
+
+	/// Calls `.tap_deref()` only when `predicate` is `true`.
+	#[inline(always)]
+	fn tap_deref_if<T>(self, predicate: bool, func: impl FnOnce(&T)) -> Self
+	where
+		Self: Deref<Target = T>,
+		T: ?Sized,
+	{
+		if predicate {
+			func(Deref::deref(&self));
+		}
+		self
+	}
+
+	/// Calls `.tap_deref_mut()` only when `predicate` is `true`.
+	#[inline(always)]
+	fn tap_deref_mut_if<T>(
+		mut self,
+		predicate: bool,
+		func: impl FnOnce(&mut T),
+	) -> Self
+	where
+		Self: DerefMut + Deref<Target = T>,
+		T: ?Sized,
+	{
+		if predicate {
+			func(DerefMut::deref_mut(&mut self));
+		}
+		self
+	}
+
+	/// Calls `.tap()` only in debug builds, and is erased in release builds.
+	#[inline(always)]
+	fn tap_dbg(self, func: impl FnOnce(&Self)) -> Self {
+		self.tap_if(cfg!(debug_assertions), func)
+	}
+
+	/// Calls `.tap_mut()` only in debug builds, and is erased in release
+	/// builds.
+	#[inline(always)]
+	fn tap_mut_dbg(self, func: impl FnOnce(&mut Self)) -> Self {
+		self.tap_mut_if(cfg!(debug_assertions), func)
 	}
 
 	/// Calls `.tap_borrow()` only in debug builds, and is erased in release
@@ -249,24 +355,18 @@ where
 		Self: Borrow<B>,
 		B: ?Sized,
 	{
-		if cfg!(debug_assertions) {
-			func(Borrow::<B>::borrow(&self));
-		}
-		self
+		self.tap_borrow_if(cfg!(debug_assertions), func)
 	}
 
 	/// Calls `.tap_borrow_mut()` only in debug builds, and is erased in release
 	/// builds.
 	#[inline(always)]
-	fn tap_borrow_mut_dbg<B>(mut self, func: impl FnOnce(&mut B)) -> Self
+	fn tap_borrow_mut_dbg<B>(self, func: impl FnOnce(&mut B)) -> Self
 	where
 		Self: BorrowMut<B>,
 		B: ?Sized,
 	{
-		if cfg!(debug_assertions) {
-			func(BorrowMut::<B>::borrow_mut(&mut self));
-		}
-		self
+		self.tap_borrow_mut_if(cfg!(debug_assertions), func)
 	}
 
 	/// Calls `.tap_ref()` only in debug builds, and is erased in release
@@ -277,24 +377,18 @@ where
 		Self: AsRef<R>,
 		R: ?Sized,
 	{
-		if cfg!(debug_assertions) {
-			func(AsRef::<R>::as_ref(&self));
-		}
-		self
+		self.tap_ref_if(cfg!(debug_assertions), func)
 	}
 
 	/// Calls `.tap_ref_mut()` only in debug builds, and is erased in release
 	/// builds.
 	#[inline(always)]
-	fn tap_ref_mut_dbg<R>(mut self, func: impl FnOnce(&mut R)) -> Self
+	fn tap_ref_mut_dbg<R>(self, func: impl FnOnce(&mut R)) -> Self
 	where
 		Self: AsMut<R>,
 		R: ?Sized,
 	{
-		if cfg!(debug_assertions) {
-			func(AsMut::<R>::as_mut(&mut self));
-		}
-		self
+		self.tap_ref_mut_if(cfg!(debug_assertions), func)
 	}
 
 	/// Calls `.tap_deref()` only in debug builds, and is erased in release
@@ -305,24 +399,18 @@ where
 		Self: Deref<Target = T>,
 		T: ?Sized,
 	{
-		if cfg!(debug_assertions) {
-			func(Deref::deref(&self));
-		}
-		self
+		self.tap_deref_if(cfg!(debug_assertions), func)
 	}
 
 	/// Calls `.tap_deref_mut()` only in debug builds, and is erased in release
 	/// builds.
 	#[inline(always)]
-	fn tap_deref_mut_dbg<T>(mut self, func: impl FnOnce(&mut T)) -> Self
+	fn tap_deref_mut_dbg<T>(self, func: impl FnOnce(&mut T)) -> Self
 	where
 		Self: DerefMut + Deref<Target = T>,
 		T: ?Sized,
 	{
-		if cfg!(debug_assertions) {
-			func(DerefMut::deref_mut(&mut self));
-		}
-		self
+		self.tap_deref_mut_if(cfg!(debug_assertions), func)
 	}
 }
 
@@ -572,47 +660,79 @@ where
 	/// ```
 	fn tap_err_mut(self, func: impl FnOnce(&mut Self::Err)) -> Self;
 
-	/// Calls `.tap_ok()` only in debug builds, and is erased in release builds.
+	/// Calls `.tap_ok()` only when `predicate` is `true`.
 	#[inline(always)]
-	fn tap_ok_dbg(self, func: impl FnOnce(&Self::Ok)) -> Self {
-		if cfg!(debug_assertions) {
+	fn tap_ok_if(self, predicate: bool, func: impl FnOnce(&Self::Ok)) -> Self {
+		if predicate {
 			self.tap_ok(func)
 		} else {
 			self
 		}
 	}
 
-	/// Calls `.tap_ok_mut()` only in debug builds, and is erased in release
-	/// builds.
+	/// Calls `.tap_ok_mut()` only when `predicate` is `true`.
 	#[inline(always)]
-	fn tap_ok_mut_dbg(self, func: impl FnOnce(&mut Self::Ok)) -> Self {
-		if cfg!(debug_assertions) {
+	fn tap_ok_mut_if(
+		self,
+		predicate: bool,
+		func: impl FnOnce(&mut Self::Ok),
+	) -> Self {
+		if predicate {
 			self.tap_ok_mut(func)
 		} else {
 			self
 		}
 	}
 
-	/// Calls `.tap_err()` only in debug builds, and is erased in release
-	/// builds.
+	/// Calls `.tap_err()` only when `predicate` is `true`.
 	#[inline(always)]
-	fn tap_err_dbg(self, func: impl FnOnce(&Self::Err)) -> Self {
-		if cfg!(debug_assertions) {
+	fn tap_err_if(self, predicate: bool, func: impl FnOnce(&Self::Err)) -> Self {
+		if predicate {
 			self.tap_err(func)
 		} else {
 			self
 		}
 	}
 
-	/// Calls `.tap_err_mut()` only in debug builds, and is erased in release
-	/// builds.
+	/// Calls `.tap_err_mut()` only when `predicate` is `true`.
 	#[inline(always)]
-	fn tap_err_mut_dbg(self, func: impl FnOnce(&mut Self::Err)) -> Self {
-		if cfg!(debug_assertions) {
+	fn tap_err_mut_if(
+		self,
+		predicate: bool,
+		func: impl FnOnce(&mut Self::Err),
+	) -> Self {
+		if predicate {
 			self.tap_err_mut(func)
 		} else {
 			self
 		}
+	}
+
+	/// Calls `.tap_ok()` only in debug builds, and is erased in release builds.
+	#[inline(always)]
+	fn tap_ok_dbg(self, func: impl FnOnce(&Self::Ok)) -> Self {
+		self.tap_ok_if(cfg!(debug_assertions), func)
+	}
+
+	/// Calls `.tap_ok_mut()` only in debug builds, and is erased in release
+	/// builds.
+	#[inline(always)]
+	fn tap_ok_mut_dbg(self, func: impl FnOnce(&mut Self::Ok)) -> Self {
+		self.tap_ok_mut_if(cfg!(debug_assertions), func)
+	}
+
+	/// Calls `.tap_err()` only in debug builds, and is erased in release
+	/// builds.
+	#[inline(always)]
+	fn tap_err_dbg(self, func: impl FnOnce(&Self::Err)) -> Self {
+		self.tap_err_if(cfg!(debug_assertions), func)
+	}
+
+	/// Calls `.tap_err_mut()` only in debug builds, and is erased in release
+	/// builds.
+	#[inline(always)]
+	fn tap_err_mut_dbg(self, func: impl FnOnce(&mut Self::Err)) -> Self {
+		self.tap_err_mut_if(cfg!(debug_assertions), func)
 	}
 }
 
